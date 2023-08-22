@@ -20,6 +20,8 @@ LIM = OneSidedFixedLimit(5.0, true)
 NOM = ARL(200)
 BOOT = Phase2(MultinomialBootstrap(STAT), x)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
+maxrl = 10.0 * get_value(NOM)
+h_up = 100.0
 
 # Precompilation
 bisectionCL(CH, h_up, nsims = 1, maxrl = 1)
@@ -27,9 +29,6 @@ approximateBisectionCL(CH, nsims = 1, maxrl = 1)
 time()
 # end precompilation
 
-
-maxrl = 10.0 * get_value(NOM)
-h_up = 100.0
 
 Random.seed!(seed)
 nsims_vec = [1000, 10000]
@@ -44,7 +43,7 @@ for i in 1:length(nsims_vec)
     for i in 1:ncond
         RLs_bisec[i] = run_sim(CH)
     end
-    safesave(datadir("sims", string(typeof(STAT).name.wrapper), "bisection", "arl-$(seed)-$(nsims).jld2"), Dict("arl" => mean(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => t_bisec))
+    safesave(datadir("sims", string(typeof(STAT).name.wrapper), "bisection", "arl-$(seed)-$(nsims).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => dt_bisec))
 
     RLs_approx = zeros(ncond);
     for B in B_vec[i]
@@ -54,7 +53,7 @@ for i in 1:length(nsims_vec)
         for i in 1:ncond
             RLs_approx[i] = run_sim(CH)
         end
-        safesave(datadir("sims", string(typeof(STAT).name.wrapper), "approximate", "arl-$(seed)-$(nsims)-$(B).jld2"), Dict("arl" => mean(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
+        safesave(datadir("sims", string(typeof(STAT).name.wrapper), "approximate", "arl-$(seed)-$(nsims)-$(B).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
     end
 end
 
@@ -85,7 +84,7 @@ for i in 1:length(nsims_vec)
     for i in 1:ncond
         RLs_bisec[i] = run_sim(CH)
     end
-    safesave(datadir("sims", string(typeof(STAT).name.wrapper), "bisection", "arl-$(seed)-$(nsims).jld2"), Dict("arl" => mean(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => t_bisec))
+    safesave(datadir("sims", string(typeof(STAT).name.wrapper), "bisection", "arl-$(seed)-$(nsims).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => dt_bisec))
 
     RLs_approx = zeros(ncond);
     for B in B_vec[i]
@@ -95,6 +94,6 @@ for i in 1:length(nsims_vec)
         for i in 1:ncond
             RLs_approx[i] = run_sim(CH)
         end
-        safesave(datadir("sims", string(typeof(STAT).name.wrapper), "approximate", "arl-$(seed)-$(nsims)-$(B).jld2"), Dict("arl" => mean(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
+        safesave(datadir("sims", string(typeof(STAT).name.wrapper), "approximate", "arl-$(seed)-$(nsims)-$(B).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
     end
 end
