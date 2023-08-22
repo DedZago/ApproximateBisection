@@ -1,0 +1,3 @@
+[submodule "SPM.jl"]
+	path = SPM.jl
+	url = https://github.com/DedZago/SPM.jl.git

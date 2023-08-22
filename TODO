@@ -1,0 +1,24 @@
+
+Todo:
+  ☐ Consider some control charts
+  - AMCUSUM
+  - LLCUSUM
+  - LI2012
+  DFEWMA:
+    ☐ Read paper
+    ☐ Implement control chart
+    ☐ Generate data according to functional form
+  Comparison:
+    Tuning parameters:
+      ☐ Use the same control charts as above
+      nsims = 1000:
+        ☐ Run classical bisection
+        ☐ Run approximate bisection with m ∈ {100, 250, 500, 1000, 5000}
+      nsims = 10000:
+        ☐ Run classical bisection
+        ☐ Run approximate bisection with m ∈ {1000, 2500, 5000, 10000, 50000}
+      ☐ Compare results in terms of optimized function (NOT THE ATTAINED ARL0)
+    Multiple charts:
+      ☐ Comparison with saCL
+      ☐ Run multiple LLCUSUM
+      ☐ Run multiple LI2012
