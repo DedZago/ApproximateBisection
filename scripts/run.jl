@@ -1,5 +1,5 @@
 using DrWatson
-@quickactivate "ApproximateBisection"
+@quickactivate 
 using Revise
 using Random
 using SPM
@@ -22,6 +22,7 @@ BOOT = Phase2(MultinomialBootstrap(STAT), x)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
 maxrl = 10.0 * get_value(NOM)
 h_up = 100.0
+ncond = 100_000
 
 
 # Precompilation
@@ -40,14 +41,13 @@ RLs_sacl = zeros(ncond);
 for i in 1:ncond
     RLs_sacl[i] = run_sim(CH)
 end
-safesave(datadir("sims", string(typeof(STAT).name.wrapper), "saCL", "arl-$(seed)-$(nsims).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_sacl), "nsims" => nsims, "B" => nsims, "time" => dt_sacl))
+safesave(datadir("sims", string(typeof(STAT).name.wrapper), "saCL", "arl-$(seed).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_sacl), "nsims" => 0, "B" => 0, "time" => dt_sacl))
 
 
 
 Random.seed!(seed)
 nsims_vec = [1000, 10000]
 B_vec = [[100, 250, 500, 1000, 5000], [1000, 2500, 5000, 10000, 50000]]
-ncond = 100_000
 for i in 1:length(nsims_vec)
     nsims = nsims_vec[i] 
     t_bisec = time()
@@ -73,6 +73,7 @@ end
 
 
 #--- AMCUSUM
+seed = seeds[2] + index_sim
 STAT = AMCUSUM(0.2, x)
 LIM = OneSidedFixedLimit(5.0, true)
 NOM = ARL(200)
@@ -82,8 +83,22 @@ CH = ControlChart(STAT, LIM, NOM, BOOT)
 # Precompilation
 bisectionCL(CH, h_up, nsims = 1, maxrl = 1)
 approximateBisectionCL(CH, nsims = 1, maxrl = 1)
+saCL(CH, maxiter=1)
 time()
 # end precompilation
+
+
+Random.seed!(seed)
+t_sacl = time()
+saCL!(CH, gamma = 0.01, maxiter = 10000000, verbose=false)
+dt_sacl = time() - t_sacl
+RLs_sacl = zeros(ncond);
+for i in 1:ncond
+    RLs_sacl[i] = run_sim(CH)
+end
+safesave(datadir("sims", string(typeof(STAT).name.wrapper), "saCL", "arl-$(seed).jld2"), Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_sacl), "nsims" => 0, "B" => 0, "time" => dt_sacl))
+
+
 
 Random.seed!(seed)
 nsims_vec = [1000, 10000]

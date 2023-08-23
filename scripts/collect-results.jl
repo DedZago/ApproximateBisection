@@ -1,10 +1,10 @@
 using DrWatson
-@quickactivate "MixedTSL"
+@quickactivate 
 using DataFrames
 using StatsBase
 
 results = DataFrame()
-for method_ in ["bisection", "approximate"]
+for method_ in ["bisection", "approximate", "saCL"]
     METHOD = method_
     println("-------- method: $(METHOD) --------")
     title = "sims"
@@ -12,19 +12,23 @@ for method_ in ["bisection", "approximate"]
         DIR = datadir(title, statistic, METHOD)
         if isdir(DIR)
             output = collect_results(DIR);
+            output.method = [METHOD for _ in eachrow(output)]
+            output.statistic = [statistic for _ in eachrow(output)]
+            output = output[:, Not(:path)]
             if size(output, 1) == 0
                 continue
             else
-            println(describe(output, :mean, :std, :min, :median, :max))
+            grouped = groupby(output, [:nsims, :B, :method, :statistic])
+            selector = Not(:nsims, :B, :method, :time, :statistic)
+            summ = combine(grouped, :time => mean, selector .=> mean, selector .=> std, selector .=> median)
+            results = vcat(results, summ)
             end
         else
             continue
         end
     end
 end
-# rename!(results, :ARL_mean => :AARL);
-# sort!(results, [:chart, :case, :m]);
-# println(results)
-# println("")
+sort!(results, [:statistic, :nsims, :method, :B]);
+println(results)
 
 # safesave(datadir("output", "ic", "results.csv"), results)
