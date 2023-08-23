@@ -4,7 +4,8 @@ using DataFrames
 using StatsBase
 
 results = DataFrame()
-for method_ in ["bisection", "approximate", "saCL"]
+for method_ in ["bisection", "approximate"]
+# for method_ in ["bisection", "approximate", "saCL"]
     METHOD = method_
     println("-------- method: $(METHOD) --------")
     title = "sims"
