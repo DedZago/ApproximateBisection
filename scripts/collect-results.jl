@@ -2,6 +2,8 @@ using DrWatson
 @quickactivate 
 using DataFrames
 using StatsBase
+using CSVFiles
+using Latexify
 
 title = "sims"
 for statistic in readdir(datadir(title))
@@ -15,16 +17,37 @@ for statistic in readdir(datadir(title))
             output.method = [METHOD for _ in eachrow(output)]
             # output.statistic = [statistic for _ in eachrow(output)]
             output = output[:, Not(:path)]
+            if :arl_j in propertynames(output)
+                expanded_arlj = Matrix(hcat(output.arl_j...)')
+                df_arlj = DataFrame(expanded_arlj, Symbol.("arl_" .* [string(i) for i in 1:size(expanded_arlj, 2)]))
+                expanded_h = Matrix(hcat(output.h...)')
+                df_h = DataFrame(expanded_h, Symbol.("h_" .* [string(i) for i in 1:size(expanded_arlj, 2)]))
+                output = output[:, Not(:arl_j, :h)]
+                output = hcat(output, df_arlj, df_h)
+            end
             results = vcat(results, output)
         else
             continue
         end
     end
     grouped = groupby(results, [:nsims, :method, :B])
-    selector = Not(:nsims, :B, :method)
+    selector = Not(:nsims, :method, :B)
     summ = combine(grouped, selector .=> mean, selector .=> std)
-    sort!(summ, [:nsims, :B, :method])
-    println(summ)
+    num_columns = [i for i in names(summ) if Base.nonmissingtype(eltype(summ[!,i])) <: Number]
+    summ_numerical = summ[!, num_columns]
+    summ_non_numerical = summ[!, Not(num_columns)]
+    summ_numerical = round.(summ_numerical, digits=3)
+    summ_final = hcat(summ_non_numerical, summ_numerical)
+    sort!(summ_final, [:nsims,:method,:B])
+    # col_names = names(summ_final)
+    # col_names = [replace(x, "median" => "") for x in col_names]
+    # col_names = [replace(x, "iqr" => "") for x in col_names]
+    # rename!(summ_final, Symbol.(col_names))
+    println(summ_final)
+    safesave(datadir("output", title, statistic, "results.csv"), summ)
+    # @show latexify(summ_final)
+    write(datadir("output", title, statistic, "results.tex"), latexify(summ_final, env=:table))
+    safesave(datadir("output", title, statistic, "results_rounded.csv"), summ_final)
 end
 
 
