@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=SIM
+#SBATCH --job-name=EWMA-LL
 #SBATCH --mail-type=NONE                # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=dzago@ufl.edu     # Where to send mail	
 #SBATCH --nodes=1
