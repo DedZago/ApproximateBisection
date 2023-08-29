@@ -65,31 +65,9 @@ x_tol = 1e-04
 NOM = ARL(200)
 maxrl = 10.0 * get_value(NOM)
 
-#--- MULTIPLE CHART WITH EWMA
-using Distributions
-seed = seeds[1] + index_sim
-statname = "MultipleEWMA"
-NM = ARL(200)
-STAT1 = EWMA(λ = 0.2)
-STAT2 = EWMA(λ = 0.5)
-STAT3 = EWMA(λ = 0.05)
-LIM1 = OneSidedFixedLimit(1.0, true)
-LIM2 = OneSidedFixedLimit(2.0, true)
-LIM3 = OneSidedFixedLimit(0.1, true)
-PH2 = Phase2Distribution(Normal(0,1))
-CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
-
-simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 10.0)
-
-
-NM = QRL(200, 0.5)
-CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 10.0)
-
-
 #--- MULTIPLE CHART WITH LLCUSUM
 using Distributions
-seed = seeds[2] + index_sim
+seed = seeds[1] + index_sim
 Random.seed!(seed)
 statname = "MultipleLLCUSUM"
 m = 500
@@ -113,7 +91,7 @@ simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncon
 #--- MULTIPLE CHART WITH T2-MEWMA
 using Distributions
 using LinearAlgebra
-seed = seeds[3] + index_sim
+seed = seeds[2] + index_sim
 statname = "T2-MEWMA"
 NM = ARL(200)
 p = 3
@@ -128,4 +106,27 @@ simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_t
 
 NM = QRL(200, 0.5)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 2.5)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 3.0)
+
+
+#--- MULTIPLE CHART WITH EWMA
+using Distributions
+seed = seeds[3] + index_sim
+statname = "MultipleEWMA"
+NM = ARL(200)
+STAT1 = EWMA(λ = 0.2)
+STAT2 = EWMA(λ = 0.5)
+STAT3 = EWMA(λ = 0.05)
+LIM1 = OneSidedFixedLimit(1.0, true)
+LIM2 = OneSidedFixedLimit(1.0, true)
+LIM3 = OneSidedFixedLimit(1.0, true)
+PH2 = Phase2Distribution(Normal(0,1))
+CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
+
+simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 5.0)
+
+
+NM = QRL(200, 0.5)
+CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 2.0)
+
