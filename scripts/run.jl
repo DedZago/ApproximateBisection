@@ -92,7 +92,7 @@ B_vec = [[100, 250, 500, 1000, 5000], [1000, 2500, 5000, 10000, 50000]]
 for i in 1:length(nsims_vec)
     nsims = nsims_vec[i] 
     title = string(typeof(STAT).name.wrapper) * "-MRL"
-    fname = datadir("sims", title, "bisection", "arl-$(seed)-$(nsims).jld2")
+    fname = datadir("sims", title, "bisection", "mrl-$(seed)-$(nsims).jld2")
     if !isfile(fname)
         t_bisec = time()
         bisectionCL!(CH, h_up, nsims = nsims, maxrl = maxrl)
@@ -101,12 +101,12 @@ for i in 1:length(nsims_vec)
         for i in 1:ncond
             RLs_bisec[i] = run_sim(CH)
         end
-        safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => dt_bisec))
+        safesave(fname, Dict("h" => get_h(get_limit(CH)), "mrl" => median(RLs_bisec), "nsims" => nsims, "B" => nsims, "time" => dt_bisec))
     end
 
     RLs_approx = zeros(ncond);
     for B in B_vec[i]
-        fname = datadir("sims", title, "approximate", "arl-$(seed)-$(nsims)-$(B).jld2")
+        fname = datadir("sims", title, "approximate", "mrl-$(seed)-$(nsims)-$(B).jld2")
         if !isfile(fname)
             t_approx = time()
             approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl)
@@ -114,10 +114,7 @@ for i in 1:length(nsims_vec)
             for i in 1:ncond
                 RLs_approx[i] = run_sim(CH)
             end
-            safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => mean(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
+            safesave(fname, Dict("h" => get_h(get_limit(CH)), "mrl" => median(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx))
         end
     end
 end
-
-
-
