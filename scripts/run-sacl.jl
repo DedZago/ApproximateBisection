@@ -25,7 +25,7 @@ function simulate_control_chart_sacl(CH; target=mean, title="sims", statname="",
     fname = datadir(title, statname, "saCL", "sim-$(seed).jld2")
     if !isfile(fname)
         t_sacl = time()
-        saCL!(CH, Amax=Amax, gamma=gamma, maxiter = 10000000, verbose=false)
+        saCL!(CH, Amax=Amax, gamma=gamma, maxiter = 1000000, verbose=false)
         dt_sacl = time() - t_sacl
         # RLs_sacl = zeros(ncond);
         tmp = [run_sim_sa(CH, maxiter=10^5, delta=0.0) for _ in 1:ncond]
