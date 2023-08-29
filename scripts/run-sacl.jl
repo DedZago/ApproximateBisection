@@ -8,6 +8,54 @@ using StatsBase
 
 include(scriptsdir("cfg.jl"))
 
+function simulate_control_chart_sacl(CH; target=mean, title="sims", statname="", ncond, f_tol, x_tol, maxrl, seed, gamma=0.01, Amax)
+
+    # Precompilation
+    approximateBisectionCL(CH, nsims = 1, maxrl = 1)
+    saCL(CH, maxiter = 1)
+    time()
+    # end precompilation
+
+    if length(statname) == 0
+        statname = string(typeof(STAT).name.wrapper)
+    end
+
+    Random.seed!(seed)
+
+    fname = datadir(title, statname, "saCL", "sim-$(seed).jld2")
+    if !isfile(fname)
+        t_sacl = time()
+        saCL!(CH, Amax=Amax, gamma=gamma, maxiter = 10000000, verbose=false)
+        dt_sacl = time() - t_sacl
+        # RLs_sacl = zeros(ncond);
+        tmp = [run_sim_sa(CH, maxiter=10^5, delta=0.0) for _ in 1:ncond]
+        ARL0 = target(minimum(x[:rl]) for x in tmp)
+        ARL_js = [target(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
+        safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
+    end
+
+    Random.seed!(seed)
+    nsims_vec = [1000, 10000]
+    B_vec = [[nsims_vec[1]], [nsims_vec[2]]]
+    for i in 1:length(nsims_vec)
+        nsims = nsims_vec[i] 
+        for B in B_vec[i]
+            fname = datadir(title, statname, "approximate", "sim-$(seed)-$(nsims)-$(B).jld2")
+            if !isfile(fname)
+                t_approx = time()
+                approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
+                dt_approx = time() - t_approx
+                tmp = [run_sim_sa(CH, maxiter=10^5, delta=0.0) for _ in 1:ncond]
+                ARL0 = target(minimum(x[:rl]) for x in tmp)
+                ARL_js = [target(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
+                safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
+            end
+        end
+    end
+
+end
+
+
 index_sim = parsed_args["index"]
 seed = seeds[1] + index_sim
 h_up = 100.0
@@ -19,8 +67,8 @@ maxrl = 10.0 * get_value(NOM)
 
 #--- MULTIPLE CHART WITH EWMA
 using Distributions
-seed = seeds[2] + index_sim
-statistic_name = "MultipleEWMA"
+seed = seeds[1] + index_sim
+statname = "MultipleEWMA"
 NM = ARL(200)
 STAT1 = EWMA(λ = 0.2)
 STAT2 = EWMA(λ = 0.5)
@@ -28,56 +76,22 @@ STAT3 = EWMA(λ = 0.05)
 LIM1 = OneSidedFixedLimit(1.0, true)
 LIM2 = OneSidedFixedLimit(2.0, true)
 LIM3 = OneSidedFixedLimit(0.1, true)
-PH1 = Phase2Distribution(Normal(0,1))
-CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH1)
+PH2 = Phase2Distribution(Normal(0,1))
+CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
 
-# # Precompilation
-approximateBisectionCL(CH, nsims = 5, maxrl = 5, f_tol = f_tol, x_tol = x_tol)
-saCL(CH, maxiter=1)
-time()
-# # end precompilation
+simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 10.0)
 
 
-Random.seed!(seed)
-fname = datadir("sims", statistic_name, "saCL", "arl-$(seed).jld2")
-if !isfile(fname)
-    t_sacl = time()
-    saCL!(CH, Amax=10.0, gamma = 0.01, maxiter = 10000000, verbose=false)
-    dt_sacl = time() - t_sacl
-    # RLs_sacl = zeros(ncond);
-    tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-    ARL0 = mean(minimum(x[:rl]) for x in tmp)
-    ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-    safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
-end
-
-
-Random.seed!(seed)
-nsims_vec = [1000, 10000]
-B_vec = [[nsims_vec[1]], [nsims_vec[2]]]
-for i in 1:length(nsims_vec)
-    nsims = nsims_vec[i] 
-    for B in B_vec[i]
-        fname = datadir("sims", statistic_name, "approximate", "arl-$(seed)-$(nsims)-$(B).jld2")
-        if !isfile(fname)
-            t_approx = time()
-            approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
-            dt_approx = time() - t_approx
-            tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-            ARL0 = mean(minimum(x[:rl]) for x in tmp)
-            ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-            safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
-        end
-    end
-end
-
+NM = QRL(200, 0.5)
+CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH2)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 10.0)
 
 
 #--- MULTIPLE CHART WITH LLCUSUM
 using Distributions
-seed = seeds[3] + index_sim
+seed = seeds[2] + index_sim
 Random.seed!(seed)
-statistic_name = "MultipleLLCUSUM"
+statname = "MultipleLLCUSUM"
 m = 500
 p = 2
 x = randn(m, p)
@@ -89,159 +103,29 @@ LIM2 = OneSidedFixedLimit(1.0, true)
 PH2 = Phase2(MultinomialBootstrap(STAT1), x)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NM, PH2)
 
-# # Precompilation
-approximateBisectionCL(CH, nsims = 5, maxrl = 5, f_tol = f_tol, x_tol = x_tol)
-saCL(CH, maxiter=1)
-time()
-# # end precompilation
+simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 2.5)
 
-
-Random.seed!(seed)
-fname = datadir("sims", statistic_name, "saCL", "arl-$(seed).jld2")
-if !isfile(fname)
-    t_sacl = time()
-    saCL!(CH, Amax=2.5, gamma = 0.01, maxiter = 10000000, verbose=false)
-    dt_sacl = time() - t_sacl
-    # RLs_sacl = zeros(ncond);
-    tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-    ARL0 = mean(minimum(x[:rl]) for x in tmp)
-    ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-    safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
-end
-
-
-Random.seed!(seed)
-nsims_vec = [1000, 10000]
-B_vec = [[nsims_vec[1]], [nsims_vec[2]]]
-for i in 1:length(nsims_vec)
-    nsims = nsims_vec[i] 
-    for B in B_vec[i]
-        fname = datadir("sims", statistic_name, "approximate", "arl-$(seed)-$(nsims)-$(B).jld2")
-        if !isfile(fname)
-            t_approx = time()
-            approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
-            dt_approx = time() - t_approx
-            tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-            ARL0 = mean(minimum(x[:rl]) for x in tmp)
-            ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-            safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
-        end
-    end
-end
-
+NM = QRL(200, 0.5)
+CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NM, PH2)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 2.5)
 
 
 #--- MULTIPLE CHART WITH T2-MEWMA
 using Distributions
 using LinearAlgebra
-seed = seeds[4] + index_sim
-statistic_name = "T2-MEWMA"
+seed = seeds[3] + index_sim
+statname = "T2-MEWMA"
 NM = ARL(200)
 p = 3
-STAT1 = MShewhart(μ = zeros(p), Σ = diagm(ones(p)))
-STAT2 = DiagMEWMA(λ = 0.2)
-STAT2 = EWMA(λ = 0.5)
-STAT3 = EWMA(λ = 0.05)
-LIM1 = OneSidedFixedLimit(1.0, true)
+STAT1 = MShewhart(μ = zeros(p), Σ_m1 = diagm(ones(p)))
+STAT2 = DiagMEWMA(Λ = [0.2 for _ in 1:p])
+LIM1 = OneSidedFixedLimit(2.0, true)
 LIM2 = OneSidedFixedLimit(2.0, true)
-LIM3 = OneSidedFixedLimit(0.1, true)
-PH1 = Phase2Distribution(Normal(0,1))
-CH = ControlChart([STAT1, STAT2, STAT3], [LIM1, LIM2, LIM3], NM, PH1)
-
-# # Precompilation
-approximateBisectionCL(CH, nsims = 5, maxrl = 5, f_tol = f_tol, x_tol = x_tol)
-saCL(CH, maxiter=1)
-time()
-# # end precompilation
-
-
-Random.seed!(seed)
-fname = datadir("sims", statistic_name, "saCL", "arl-$(seed).jld2")
-if !isfile(fname)
-    t_sacl = time()
-    saCL!(CH, Amax=10.0, gamma = 0.01, maxiter = 10000000, verbose=false)
-    dt_sacl = time() - t_sacl
-    # RLs_sacl = zeros(ncond);
-    tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-    ARL0 = mean(minimum(x[:rl]) for x in tmp)
-    ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-    safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
-end
-
-
-Random.seed!(seed)
-nsims_vec = [1000, 10000]
-B_vec = [[nsims_vec[1]], [nsims_vec[2]]]
-for i in 1:length(nsims_vec)
-    nsims = nsims_vec[i] 
-    for B in B_vec[i]
-        fname = datadir("sims", statistic_name, "approximate", "arl-$(seed)-$(nsims)-$(B).jld2")
-        if !isfile(fname)
-            t_approx = time()
-            approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
-            dt_approx = time() - t_approx
-            tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-            ARL0 = mean(minimum(x[:rl]) for x in tmp)
-            ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-            safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
-        end
-    end
-end
-
-
-
-#--- MULTIPLE CHART WITH LLCUSUM
-using Distributions
-seed = seeds[3] + index_sim
-Random.seed!(seed)
-statistic_name = "MultipleLLCUSUM"
-m = 500
-p = 2
-x = randn(m, p)
-NM = ARL(200)
-STAT1 = LLCUSUM(0.1, x)
-STAT2 = LLCUSUM(0.5, x)
-LIM1 = OneSidedFixedLimit(1.0, true)
-LIM2 = OneSidedFixedLimit(1.0, true)
-PH2 = Phase2(MultinomialBootstrap(STAT1), x)
+PH2 = Phase2Distribution(MvNormal(zeros(p), ones(p)))
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NM, PH2)
 
-# # Precompilation
-approximateBisectionCL(CH, nsims = 5, maxrl = 5, f_tol = f_tol, x_tol = x_tol)
-saCL(CH, maxiter=1)
-time()
-# # end precompilation
+simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 5.0)
 
-
-Random.seed!(seed)
-fname = datadir("sims", statistic_name, "saCL", "arl-$(seed).jld2")
-if !isfile(fname)
-    t_sacl = time()
-    saCL!(CH, Amax=2.5, gamma = 0.01, maxiter = 10000000, verbose=false)
-    dt_sacl = time() - t_sacl
-    # RLs_sacl = zeros(ncond);
-    tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-    ARL0 = mean(minimum(x[:rl]) for x in tmp)
-    ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-    safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
-end
-
-
-Random.seed!(seed)
-nsims_vec = [1000, 10000]
-B_vec = [[nsims_vec[1]], [nsims_vec[2]]]
-for i in 1:length(nsims_vec)
-    nsims = nsims_vec[i] 
-    for B in B_vec[i]
-        fname = datadir("sims", statistic_name, "approximate", "arl-$(seed)-$(nsims)-$(B).jld2")
-        if !isfile(fname)
-            t_approx = time()
-            approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
-            dt_approx = time() - t_approx
-            tmp = [run_sim_sa(CH, maxiter=10^4, delta=0.0) for _ in 1:ncond]
-            ARL0 = mean(minimum(x[:rl]) for x in tmp)
-            ARL_js = [mean(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-            safesave(fname, Dict("h" => get_h(get_limit(CH)), "arl" => ARL0, "arl_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
-        end
-    end
-end
+NM = QRL(200, 0.5)
+CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NM, PH2)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = 0.01, Amax = 2.5)
