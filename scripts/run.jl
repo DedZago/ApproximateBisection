@@ -1,9 +1,12 @@
 using DrWatson
 @quickactivate 
 using Revise
+using Distributions
+using LinearAlgebra
 using Random
 using SPM
 using StatsBase
+
 
 
 include(scriptsdir("cfg.jl"))
@@ -94,9 +97,6 @@ simulate_control_chart(CH, target=median, statname = "LLCUSUM-median", h_up=h_up
 #############################################################
 #                       MEWMA 3 dim                         #
 #############################################################
-
-using Distributions
-using LinearAlgebra
 p = 3
 seed = seeds[2] + index_sim
 STAT = DiagMEWMA(Λ = fill(0.2, p))
@@ -120,9 +120,6 @@ simulate_control_chart(CH, target=median, statname="MEWMA-median", h_up=h_up, nc
 #############################################################
 #                       AMCUSUM 5 dim                       #
 #############################################################
-
-using Distributions
-using LinearAlgebra
 p = 5
 seed = seeds[3] + index_sim
 STAT = AMCUSUM(λ = 0.1, p = p)
