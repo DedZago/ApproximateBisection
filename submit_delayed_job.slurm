@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=OPT-delayed
+#SBATCH --job-name=BI-delayed
 #SBATCH --mail-type=NONE                # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=dzago@ufl.edu     # Where to send mail	
 #SBATCH --nodes=1
@@ -12,7 +12,13 @@
 #SBATCH --output=slurm-output/%x_%A_%a.log   # Standard output and error log
 
 
-# sleep 3m
-# ./submit_generate_opt_data.sh
-sleep 30m
-./submit_optimization.sh
+while true
+do
+    sleep 1s
+    numberleft=$(squeue --user dzago | grep OPTDATA | wc -l)
+    if [[ $numberleft -eq 0 ]]
+    then
+        ./submit_run_bisection.sh
+        break
+    fi
+done

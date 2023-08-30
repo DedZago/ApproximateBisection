@@ -122,7 +122,7 @@ simulate_control_chart(CH, target=median, statname="MEWMA-median", h_up=h_up, nc
 #############################################################
 p = 5
 seed = seeds[3] + index_sim
-STAT = AMCUSUM(λ = 0.1, p = p)
+STAT = MCUSUM(0.25, p, 0.0, zeros(p))
 LIM = OneSidedFixedLimit(5.0, true)
 BOOT = Phase2Distribution(MvNormal(zeros(p), ones(p)))
 NOM = ARL(200)
