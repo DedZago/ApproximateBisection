@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=BI-delayed
+#SBATCH --job-name=SA-delayed
 #SBATCH --mail-type=NONE                # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=dzago@ufl.edu     # Where to send mail	
 #SBATCH --nodes=1
@@ -15,10 +15,11 @@
 while true
 do
     sleep 1s
-    numberleft=$(squeue --user dzago | grep OPTDATA | wc -l)
+    numberleft=$(squeue --user dzago | grep OPT-dela | wc -l)
     if [[ $numberleft -eq 0 ]]
     then
-        ./submit_run_bisection.sh
+        sleep 2m
+        ./submit_run_sacl.sh
         break
     fi
 done
