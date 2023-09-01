@@ -87,7 +87,7 @@ simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_t
 
 println("Multiple LLCUSUM median optimization")
 NOM = QRL(200, 0.5)
-maxrl = 20.0 * get_value(NOM)
+# maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
 simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 2.0)
 
@@ -100,7 +100,7 @@ seed = seeds[2] + index_sim
 statname = "T2-MEWMA"
 NOM = ARL(200)
 p = 3
-maxrl = 10.0 * get_value(NOM)
+# maxrl = 10.0 * get_value(NOM)
 STAT1 = MShewhart(μ = zeros(p), Σ_m1 = diagm(ones(p)))
 STAT2 = DiagMEWMA(Λ = [0.2 for _ in 1:p])
 LIM1 = OneSidedFixedLimit(2.0, true)
@@ -112,7 +112,7 @@ simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_t
 
 println("T2-MEWMA median optimization")
 NOM = QRL(200, 0.5)
-maxrl = 20.0 * get_value(NOM)
+# maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
 simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 3.0)
 
@@ -123,7 +123,7 @@ using Distributions
 seed = seeds[3] + index_sim
 statname = "MultipleEWMA"
 NOM = ARL(200)
-maxrl = 10.0 * get_value(NOM)
+# maxrl = 10.0 * get_value(NOM)
 STAT1 = EWMA(λ = 0.2)
 STAT2 = EWMA(λ = 0.5)
 STAT3 = EWMA(λ = 0.05)
@@ -140,7 +140,7 @@ simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_t
 
 println("Multiple EWMA median optimization")
 NOM = QRL(200, 0.5)
-maxrl = 20.0 * get_value(NOM)
+# maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 1.0)
 

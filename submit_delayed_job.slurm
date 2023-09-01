@@ -15,10 +15,9 @@
 while true
 do
     sleep 1s
-    numberleft=$(squeue --user dzago | grep OPT-dela | wc -l)
+    numberleft=$(squeue --user dzago | grep OPT | grep PD | wc -l)
     if [[ $numberleft -eq 0 ]]
     then
-        sleep 2m
         ./submit_run_sacl.sh
         break
     fi
