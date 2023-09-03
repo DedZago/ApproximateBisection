@@ -20,27 +20,15 @@ function simulate_control_chart_sacl(CH; target=mean, title="sims-sacl", statnam
         statname = string(typeof(STAT).name.wrapper)
     end
 
-    Random.seed!(seed)
-
-    fname = datadir(title, statname, "saCL", "sim-$(seed).jld2")
-    if !isfile(fname)
-        t_sacl = time()
-        saCL!(CH, Amax=Amax, gamma=gamma, maxiter = 1000000, verbose=false)
-        dt_sacl = time() - t_sacl
-        # RLs_sacl = zeros(ncond);
-        tmp = [run_sim_sa(CH, maxiter=10^5, delta=0.0) for _ in 1:ncond]
-        ARL0 = target(minimum(x[:rl]) for x in tmp)
-        ARL_js = [target(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
-        safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
-    end
-
-    Random.seed!(seed)
     nsims_vec = [10000]
     B_vec = [10000]
     for i in 1:length(nsims_vec)
+        Random.seed!(seed)
         nsims = nsims_vec[i] 
-        for B in B_vec[i]
+        for B in B_vec
             fname = datadir(title, statname, "approximate", "sim-$(seed)-$(nsims)-$(B).jld2")
+            @show nsims, B
+            @show fname
             if !isfile(fname)
                 t_approx = time()
                 approximateBisectionCL!(CH, nsims=nsims, B = B, maxrl = maxrl, f_tol = f_tol, x_tol = x_tol)
@@ -51,6 +39,19 @@ function simulate_control_chart_sacl(CH; target=mean, title="sims-sacl", statnam
                 safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
             end
         end
+    end
+
+    Random.seed!(seed)
+    fname = datadir(title, statname, "saCL", "sim-$(seed).jld2")
+    if !isfile(fname)
+        t_sacl = time()
+        saCL!(CH, Amax=Amax, gamma=gamma, maxiter = 1000000, verbose=false)
+        dt_sacl = time() - t_sacl
+        # RLs_sacl = zeros(ncond);
+        tmp = [run_sim_sa(CH, maxiter=10^5, delta=0.0) for _ in 1:ncond]
+        ARL0 = target(minimum(x[:rl]) for x in tmp)
+        ARL_js = [target(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
+        safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => 0, "B" => 0, "time" => dt_sacl))
     end
 
 end
@@ -93,28 +94,32 @@ simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncon
 
 
 #--- MULTIPLE CHART WITH T2-MEWMA
-println("T2-MEWMA")
+println("T2-MCUSUM")
 using Distributions
 using LinearAlgebra
 seed = seeds[2] + index_sim
-statname = "T2-MEWMA"
+statname = "T2-MCUSUM"
 NOM = ARL(200)
-p = 3
+p = 5
 # maxrl = 10.0 * get_value(NOM)
 STAT1 = MShewhart(μ = zeros(p), Σ_m1 = diagm(ones(p)))
-STAT2 = DiagMEWMA(Λ = [0.2 for _ in 1:p])
-LIM1 = OneSidedFixedLimit(2.0, true)
-LIM2 = OneSidedFixedLimit(2.0, true)
+STAT2 = MCUSUM(0.1, p, 0.0, zeros(p))
+STAT3 = MCUSUM(0.25, p, 0.0, zeros(p))
+STAT4 = MCUSUM(0.5, p, 0.0, zeros(p))
+LIM1 = OneSidedFixedLimit(1.0, true)
+LIM2 = OneSidedFixedLimit(1.0, true)
+LIM3 = OneSidedFixedLimit(1.0, true)
+LIM4 = OneSidedFixedLimit(1.0, true)
 PH2 = Phase2Distribution(MvNormal(zeros(p), ones(p)))
-CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
+CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 
 simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 5.0)
 
-println("T2-MEWMA median optimization")
+println("T2-MCUSUM median optimization")
 NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
-CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 3.0)
+CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 5.0)
 
 
 #--- MULTIPLE CHART WITH EWMA
@@ -142,5 +147,5 @@ println("Multiple EWMA median optimization")
 NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 1.0)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.1)
 

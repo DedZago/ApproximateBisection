@@ -113,12 +113,12 @@ simulate_control_chart(CH, target=mean, h_up=h_up, ncond=ncond, f_tol=f_tol, x_t
 NOM = QRL(200, 0.5)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
 
-simulate_control_chart(CH, target=median, statname="MEWMA-median", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
+simulate_control_chart(CH, target=median, statname="DiagMEWMA-median", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
 
 
 
 #############################################################
-#                       AMCUSUM 5 dim                       #
+#                       MCUSUM 5 dim                        #
 #############################################################
 p = 5
 seed = seeds[3] + index_sim
@@ -128,7 +128,7 @@ BOOT = Phase2Distribution(MvNormal(zeros(p), ones(p)))
 NOM = ARL(200)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
 
-simulate_control_chart(CH, target=mean, statname="AMCUSUM", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
+simulate_control_chart(CH, target=mean, statname="MCUSUM", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
 
 
 
@@ -136,4 +136,4 @@ simulate_control_chart(CH, target=mean, statname="AMCUSUM", h_up=h_up, ncond=nco
 NOM = QRL(200, 0.5)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
 
-simulate_control_chart(CH, target=median, statname="AMCUSUM-median", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
+simulate_control_chart(CH, target=median, statname="MCUSUM-median", h_up=h_up, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed)
