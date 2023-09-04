@@ -148,4 +148,3 @@ NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.1)
-

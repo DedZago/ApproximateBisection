@@ -15,7 +15,7 @@
 while true
 do
     sleep 1s
-    numberleft=$(squeue --user dzago | grep OPT | grep PD | wc -l)
+    numberleft=$(squeue --user dzago | grep SACL | wc -l)
     if [[ $numberleft -eq 0 ]]
     then
         ./submit_run_sacl.sh
