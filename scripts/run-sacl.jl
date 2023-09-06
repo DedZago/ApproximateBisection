@@ -60,7 +60,7 @@ end
 index_sim = parsed_args["index"]
 seed = seeds[1] + index_sim
 h_up = 100.0
-ncond = 10_000
+ncond = 100_000
 f_tol = 1.0
 x_tol = 1e-04
 NOM = ARL(200)
@@ -84,13 +84,13 @@ LIM2 = OneSidedFixedLimit(1.0, true)
 PH2 = Phase2(MultinomialBootstrap(STAT1), x)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
 
-simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 2.5)
+simulate_control_chart_sacl(CH, target=mean, statname=statname, ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 3.0)
 
 println("Multiple LLCUSUM median optimization")
 NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2], [LIM1, LIM2], NOM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 2.0)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 3.0)
 
 
 #--- MULTIPLE CHART WITH T2-MEWMA
@@ -147,4 +147,4 @@ println("Multiple EWMA median optimization")
 NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.1)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.25)

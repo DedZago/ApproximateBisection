@@ -49,7 +49,7 @@ end
 index_sim = parsed_args["index"]
 seed = seeds[1] + index_sim
 h_up = 100.0
-ncond = 10_000
+ncond = 100_000
 NOM = ARL(200)
 maxrl = 10.0 * get_value(NOM)
 

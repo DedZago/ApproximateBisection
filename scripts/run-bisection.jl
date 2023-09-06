@@ -64,7 +64,7 @@ end
 index_sim = parsed_args["index"]
 seed = seeds[1] + index_sim
 h_up = 100.0
-ncond = 10_000
+ncond = 100_000
 f_tol = 1.0
 x_tol = 1e-06
 NOM = ARL(200)
@@ -132,7 +132,7 @@ simulate_control_chart(CH, target=mean, statname="MCUSUM", h_up=h_up, ncond=ncon
 
 
 
-#----- AMCUSUM median
+#----- MCUSUM median
 NOM = QRL(200, 0.5)
 CH = ControlChart(STAT, LIM, NOM, BOOT)
 
