@@ -10,6 +10,7 @@ using StatsBase
 
 
 include(scriptsdir("cfg.jl"))
+index_sim = parsed_args["index"]
 
 function simulate_parallel(CH; target=mean, title="sims-parallel", statname="", h_up, ncond, maxrl, seed, f_tol, x_tol)
     # Precompilation
@@ -31,19 +32,17 @@ function simulate_parallel(CH; target=mean, title="sims-parallel", statname="", 
         t_approx = time()
         approximateBisectionCL!(CH, maxiter = 1000, nsims=nsims, B = B, maxrl = maxrl, x_tol=x_tol, f_tol=f_tol, parallel=true)
         dt_approx = time() - t_approx
+        tmp = Vector{NamedTuple{(:rl, :rlPlus, :rlMinus), Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}}}(undef, ncond)
         Threads.@threads for i in 1:ncond
-            RLs_approx[i] = run_sim(CH)
+            tmp[i] = run_sim_sa(CH, maxiter=10^5, delta=0.0)
         end
-        safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => target(RLs_approx), "nsims" => nsims, "B" => B, "time" => dt_approx, "x_tol" => x_tol, "f_tol" => f_tol))
+        ARL0 = target(minimum(x[:rl]) for x in tmp)
+        ARL_js = [target(x[:rl][l] for x in tmp) for l in 1:length(get_statistic(CH))]
+        safesave(fname, Dict("h" => get_h(get_limit(CH)), "target" => ARL0, "target_j" => ARL_js, "nsims" => nsims, "B" => B, "time" => dt_approx))
     end
 end
 
 
-#############################################################
-#                          LLCUSUM                          #
-#############################################################
-
-index_sim = parsed_args["index"]
 seed = seeds[1] + index_sim
 h_up = 100.0
 ncond = 100_000
@@ -52,28 +51,32 @@ x_tol = 1e-06
 NOM = ARL(200)
 maxrl = 10.0 * get_value(NOM)
 
-Random.seed!(seed)
-m = 500
-p = 3
-x = randn(m, p)
 
-STAT = LLCUSUM(1.0, x)
-LIM = OneSidedFixedLimit(5.0, true)
-BOOT = Phase2(MultinomialBootstrap(STAT), x)
-CH = ControlChart(STAT, LIM, NOM, BOOT)
+#############################################################
+#                          LLCUSUM                          #
+#############################################################
+# Random.seed!(seed)
+# m = 500
+# p = 3
+# x = randn(m, p)
 
-simulate_parallel(CH, target=mean, h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
-GC.gc(true)
+# STAT = LLCUSUM(1.0, x)
+# LIM = OneSidedFixedLimit(5.0, true)
+# BOOT = Phase2(MultinomialBootstrap(STAT), x)
+# CH = ControlChart(STAT, LIM, NOM, BOOT)
+
+# simulate_parallel(CH, target=mean, h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
+# GC.gc(true)
 
 
-#----- LLCUSUM median
-NOM = QRL(200, 0.5)
-STAT = LLCUSUM(1.0, x)
-LIM = OneSidedFixedLimit(5.0, true)
-BOOT = Phase2(MultinomialBootstrap(STAT), x)
-CH = ControlChart(STAT, LIM, NOM, BOOT)
+# #----- LLCUSUM median
+# NOM = QRL(200, 0.5)
+# STAT = LLCUSUM(1.0, x)
+# LIM = OneSidedFixedLimit(5.0, true)
+# BOOT = Phase2(MultinomialBootstrap(STAT), x)
+# CH = ControlChart(STAT, LIM, NOM, BOOT)
 
-simulate_parallel(CH, target=median, statname = "LLCUSUM-median", h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
+# simulate_parallel(CH, target=median, statname = "LLCUSUM-median", h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
 
 
 ############################################################
@@ -98,7 +101,7 @@ LIM4 = OneSidedFixedLimit(1.0, true)
 PH2 = Phase2Distribution(MvNormal(zeros(p), ones(p)))
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 
-simulate_parallel(CH, target=mean, h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
+simulate_parallel(CH, target=mean, h_up=h_up, statname = statname, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
 GC.gc(true)
 
 
