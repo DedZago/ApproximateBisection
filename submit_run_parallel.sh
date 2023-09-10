@@ -11,7 +11,7 @@ for index in $(seq $INIT $END)
 do
     export index
     echo seed is: $index
-    job_id=$(sbatch --parsable run_job_sensitivity.slurm)
+    job_id=$(sbatch --parsable run_job_parallel.slurm)
     if [[ $index -eq $INIT ]]
     then
         echo -n "scancel {$job_id.." >> $FILE 

@@ -126,17 +126,17 @@ simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncon
 println("Multiple EWMA")
 using Distributions
 seed = seeds[3] + index_sim
-statname = "MultipleEWMA"
+statname = "TwoSideMultipleEWMA"
 NOM = ARL(200)
 # maxrl = 10.0 * get_value(NOM)
-STAT1 = EWMA(λ = 0.2)
-STAT2 = EWMA(λ = 0.5)
-STAT3 = EWMA(λ = 0.05)
-STAT4 = EWMA(λ = 0.1)
-LIM1 = OneSidedFixedLimit(1.0, true)
-LIM2 = OneSidedFixedLimit(1.0, true)
-LIM3 = OneSidedFixedLimit(1.0, true)
-LIM4 = OneSidedFixedLimit(1.0, true)
+STAT1 = EWMA(λ = 0.05)
+STAT2 = EWMA(λ = 0.1)
+STAT3 = EWMA(λ = 0.2)
+STAT4 = EWMA(λ = 0.5)
+LIM1 = TwoSidedFixedLimit(1.0)
+LIM2 = TwoSidedFixedLimit(1.0)
+LIM3 = TwoSidedFixedLimit(1.0)
+LIM4 = TwoSidedFixedLimit(1.0)
 PH2 = Phase2Distribution(Normal(0,1))
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 
@@ -147,4 +147,4 @@ println("Multiple EWMA median optimization")
 NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
-simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.25)
+simulate_control_chart_sacl(CH, target=median, statname=statname*"-median", ncond=ncond, f_tol=f_tol, x_tol=x_tol, maxrl=maxrl, seed=seed, gamma = gamma, Amax = 0.2)
