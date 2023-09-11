@@ -14,7 +14,7 @@ index_sim = parsed_args["index"]
 
 function simulate_parallel(CH; target=mean, title="sims-parallel", statname="", h_up, ncond, maxrl, seed, f_tol, x_tol)
     # Precompilation
-    approximateBisectionCL(CH, nsims = 1, maxrl = 1, parallel=true)
+    approximateBisectionCL(CH, nsims = 2, maxrl = 3, parallel=true)
     time()
     # end precompilation
 
@@ -45,7 +45,7 @@ end
 
 seed = seeds[1] + index_sim
 h_up = 100.0
-ncond = 100_000
+ncond = 10_000
 f_tol = 1.0
 x_tol = 1e-06
 NOM = ARL(200)
@@ -87,13 +87,13 @@ using Distributions
 seed = seeds[1] + index_sim
 statname = "RSADA"
 NOM = ARL(200)
-p = 100
-q = 15
+p = 200
+q = 20
 x = randn(1,p)
-STAT1 = RSADA(0.15, 0.5, q, x)
-STAT2 = RSADA(0.3, 1.0, q, x)
-STAT3 = RSADA(0.5, 1.5, q, x)
-STAT4 = RSADA(1.0, 2.0, q, x)
+STAT1 = RSADA(0.5, 1.5, q, x)
+STAT2 = RSADA(0.75, 2.0, q, x)
+STAT3 = RSADA(1.0, 2.5, q, x)
+STAT4 = RSADA(1.25, 3.0, q, x)
 LIM1 = OneSidedFixedLimit(1.0, true)
 LIM2 = OneSidedFixedLimit(1.0, true)
 LIM3 = OneSidedFixedLimit(1.0, true)

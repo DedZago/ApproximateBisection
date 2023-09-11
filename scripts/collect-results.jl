@@ -142,7 +142,7 @@ for statistic in readdir(datadir(title))
     println(summ_final_transpose)
     # safesave(datadir("output", title, statistic, "results.csv"), summ_final_transpose)
     # @show latexify(summ_final_transpose)
-    # safesave(datadir("output", title, statistic, "results_rounded.csv"), summ_final)
-    # write(datadir("output", title, statistic, "results.tex"), latexify(summ_final_transpose, env=:table))
+    safesave(datadir("output", title, statistic, "results_rounded.csv"), summ_final)
+    write(datadir("output", title, statistic, "results.tex"), latexify(summ_final_transpose, env=:table))
 end
 
