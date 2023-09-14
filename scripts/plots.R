@@ -102,3 +102,32 @@ tab <- kable(df_all, format="latex", booktabs=TRUE, digits = 3, row.names=TRUE, 
         linesep = "", caption = "", label="RSADA-results") %>%
         add_header_above(c("", "ARL" = 2, "MRL" = 2)) %>%
         kable_styling(latex_options = "hold_position")
+
+
+
+setwd("/home/dzago/ApproximateBisection/data/output/sims")
+LOADDIR = getwd()
+df_final = data.frame()
+statistics = list.dirs(LOADDIR, recursive = FALSE)
+
+for(i in 1:lens){
+    setwd(statistics[i])
+    cat("-----", statistics[i], "-----", "\n")
+    df = read.csv("results_rounded.csv")
+    rn = df[,1]
+    rn = str_replace(rn, "bisection", "Bisection")
+    rn = str_replace(rn, "approximate", "BA-Bisection")
+    df[,1] = rn
+    df = df[, c(1,2,3,4,7,5,8,6,9)]
+    cn = colnames(df)
+    print(df)
+    linesep = c(rep("", 5), "\\addlinespace", rep("",5))
+    cat("\n\n")
+    tab <- kable(df, format="latex", booktabs=TRUE, digits = 3, row.names=FALSE, escape=FALSE, align='c',
+            linesep = linesep, caption = "", label="results") %>%
+            add_header_above(c("", "", "", "time (s)" = 2, "target" = 2, "h" = 2)) %>%
+            kable_styling(latex_options = "hold_position")
+
+    writeLines(tab, paste0(statistics[i], "/results.tex"))
+    setwd("..")
+}
