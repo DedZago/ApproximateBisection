@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=SA-delayed
+#SBATCH --job-name=RSADA-delayed
 #SBATCH --mail-type=NONE                # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=dzago@ufl.edu     # Where to send mail	
 #SBATCH --nodes=1
@@ -15,10 +15,10 @@
 while true
 do
     sleep 1s
-    numberleft=$(squeue --user dzago | grep SACL | wc -l)
+    numberleft=$(squeue --user dzago | grep RSADA | wc -l)
     if [[ $numberleft -eq 0 ]]
     then
-        ./submit_run_sacl.sh
+        ./submit_run_nonparallel.sh
         break
     fi
 done
