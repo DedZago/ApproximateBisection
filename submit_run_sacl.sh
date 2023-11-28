@@ -1,8 +1,6 @@
 module load julia
-# module load R
 mkdir slurm-output
 rm slurm-output/*
-# julia -e "using Pkg; Pkg.add(\"DrWatson\"); using DrWatson; @quickactivate; Pkg.instantiate();"
 FILE="cancel-submission.txt"
 touch $FILE
 INIT=1
