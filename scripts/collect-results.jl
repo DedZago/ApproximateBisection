@@ -89,7 +89,6 @@ for statistic in readdir(datadir(title))
 end
 
 
-
 title = "sims-parallel"
 for statistic in readdir(datadir(title))
     results = DataFrame()
@@ -131,6 +130,7 @@ for statistic in readdir(datadir(title))
     safesave(datadir("output", title, statistic, "results_rounded.csv"), summ_final)
     write(datadir("output", title, statistic, "results.tex"), latexify(summ_final_transpose, env=:table))
 end
+
 
 title = "sims-parallel-8cores"
 for statistic in readdir(datadir(title))
@@ -174,7 +174,6 @@ for statistic in readdir(datadir(title))
     safesave(datadir("output", title, statistic, "results_rounded.csv"), summ_final)
     write(datadir("output", title, statistic, "results.tex"), latexify(summ_final_transpose, env=:table))
 end
-
 
 
 title = "sims-nonparallel"
