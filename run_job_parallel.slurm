@@ -13,5 +13,6 @@
 #SBATCH --qos=qiu-b
 #SBATCH --output=slurm-output/%x_%A_%a.log   # Standard output and error log
 
+julia -t 4 scripts/run-parallel.jl --index $index
 julia -t 8 scripts/run-parallel.jl --index $index
 
