@@ -74,7 +74,7 @@ LIM4 = OneSidedFixedLimit(1.0, true)
 PH2 = Phase2Distribution(MvNormal(zeros(p), ones(p)))
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 
-simulate_parallel(CH, target=mean, h_up=h_up, statname = statname, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
+simulate_parallel(CH, target=mean, h_up=h_up, statname = statname, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol, title="sims-parallel-8cores")
 GC.gc(true)
 
 
@@ -83,4 +83,4 @@ NOM = QRL(200, 0.5)
 # maxrl = 20.0 * get_value(NOM)
 CH = ControlChart([STAT1, STAT2, STAT3, STAT4], [LIM1, LIM2, LIM3, LIM4], NOM, PH2)
 
-simulate_parallel(CH, target=median, statname = statname * "-median", h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol)
+simulate_parallel(CH, target=median, statname = statname * "-median", h_up=h_up, ncond=ncond, maxrl=maxrl, seed=seed, f_tol=f_tol, x_tol=x_tol, title="sims-parallel-8cores")
